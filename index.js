@@ -1,18 +1,30 @@
 const params = new URLSearchParams(window.location.search);
 
 /**
- * detectInAppBrowser (StackOverflow-style heuristic)
+ * detectInAppBrowser with explicit Telegram Web App checks
+ * - Uses UA check, window.Telegram / window.TelegramWebApp presence,
+ *   document.referrer 'tg://' check and legacy Telegram webview proxies.
  * Returns { isInApp, isTelegram, isAndroid }
  */
 function detectInAppBrowser() {
   const ua = (navigator.userAgent || "").toString();
+  const ref = (document.referrer || "").toString();
 
-  const isTelegram = /Telegram/i.test(ua) || typeof window.TelegramWebApp !== "undefined";
-  const knownInApp = /FBAN|FBAV|Instagram|Twitter|Snapchat|Messenger|WhatsApp|WeChat|MicroMessenger|Pinterest|LinkedIn|Viber|KAKAO|NAVER|FB_IAB|FB4A|FBAN|Telegram/i.test(ua);
+  // Telegram-specific checks (UA, WebApp objects, referrer, proxy)
+  const uaHasTelegram = /Telegram/i.test(ua);
+  const hasTelegramWebAppObject = typeof window.TelegramWebApp !== "undefined";
+  const hasTelegramWebAppNested = !!(window.Telegram && window.Telegram.WebApp);
+  const hasTelegramWebviewProxy = typeof window.TelegramWebviewProxy !== "undefined";
+  const referrerIsTg = ref.startsWith("tg://") || ref.startsWith("tg:"); // tg:// or tg:
+
+  const isTelegram = uaHasTelegram || hasTelegramWebAppObject || hasTelegramWebAppNested || hasTelegramWebviewProxy || referrerIsTg;
+
+  // Generic known in-app browsers (kept for broader detection if needed)
+  const knownInApp = /FBAN|FBAV|Instagram|Twitter|Snapchat|Messenger|WhatsApp|WeChat|MicroMessenger|Pinterest|LinkedIn|Viber|KAKAO|NAVER|FB_IAB|FB4A|FBAN/i.test(ua);
 
   const isAndroid = /\bAndroid\b/i.test(ua);
 
-  // Android WebView indicator 'wv' or Version/X without Chrome token
+  // Android WebView heuristic (kept but we will only use Telegram flag for Android-only branch)
   const isAndroidWebView = /\bwv\b/i.test(ua) || (isAndroid && /Version\/\d+\.\d+/i.test(ua) && !/Chrome\/\d+/i.test(ua));
 
   const isInApp = isTelegram || knownInApp || isAndroidWebView;
@@ -25,31 +37,31 @@ function toChromeIntent(url) {
 }
 
 /**
- * Android-only behavior:
- * If we're on Android AND in an in-app browser, attempt to open the SAME encoded URL externally (intent://).
- * Fallback after delay: redirect to decoded destination inside the in-app browser.
+ * Android-only behaviour: only when Telegram detected
+ * Attempt to open the SAME encoded URL externally via intent:// (Chrome).
+ * If that fails, fall back after a short delay to in-app redirect to decoded destination.
  */
-function openSameEncodedUrlOnAndroidOrFallback(decodedDestination) {
+function openSameEncodedUrlOnAndroidIfTelegramOrFallback(decodedDestination) {
   const det = detectInAppBrowser();
   const encodedUrl = window.location.href;
 
-  if (!(det.isAndroid && det.isInApp)) {
-    // Not Android in-app -> normal immediate redirect to decoded destination
+  // Only run special behaviour when both Android and Telegram are detected
+  if (!(det.isAndroid && det.isTelegram)) {
     window.location.replace(decodedDestination);
     return;
   }
 
-  // Android in-app detected -> attempt external open via intent
+  // Android + Telegram -> attempt to open encoded URL externally via Chrome intent
   const intentUrl = toChromeIntent(encodedUrl);
   window.location.replace(intentUrl);
 
-  // Fallback: after short delay, do a normal in-app redirect to decoded destination
+  // Fallback: after short delay, redirect to decoded destination in-app
   setTimeout(() => {
     window.location.replace(decodedDestination);
   }, 1500);
 }
 
-/* --- existing behaviour below --- */
+/* --- main logic (unchanged except Android+Telegram branch above) --- */
 
 if (params.get("r") && params.get("r").toLowerCase().endsWith(" reveal")) {
   const url = params.get("r").slice(0, -7);
@@ -70,8 +82,8 @@ if (params.get("r") && params.get("r").toLowerCase().endsWith(" reveal")) {
   );
 } else if (params.get("r")) {
   const dest = window.atob(params.get("r"));
-  // Use Android-only open-or-fallback, otherwise immediate redirect
-  openSameEncodedUrlOnAndroidOrFallback(dest);
+  // Only Android+Telegram will open the same encoded URL externally; otherwise normal redirect
+  openSameEncodedUrlOnAndroidIfTelegramOrFallback(dest);
 } else if (params.get("t")) {
   document.body.innerHTML = `
     <p>${window.atob(params.get("t"))}</p>
@@ -105,4 +117,4 @@ if (params.get("r") && params.get("r").toLowerCase().endsWith(" reveal")) {
   `;
 } else {
   window.location.replace("https://urlmsk.onrender.com/create");
-                  }
+}
