@@ -1,9 +1,10 @@
+/* =====================================================
+   INIT & DEBUG (MUST BE FIRST)
+===================================================== */
+
 const params = new URLSearchParams(window.location.search);
 const DEBUG = params.get("debug") === "1";
 
-/* ============================
-   Telegram WebView Detection
-============================ */
 function isTelegramWebView() {
   return typeof window.TelegramWebview !== "undefined";
 }
@@ -16,134 +17,145 @@ function isIOS() {
   return /iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
-/* ============================
-   DEBUG SCREEN
-============================ */
-function showDebug(info) {
-  document.body.innerHTML = `
-    <pre style="
-      background:#0f172a;
-      color:#38bdf8;
+function showDebug(text) {
+  document.documentElement.innerHTML = `
+    <body style="
+      margin:0;
+      background:#020617;
+      color:#22d3ee;
+      font-family:monospace;
       padding:16px;
-      font-size:14px;
       white-space:pre-wrap;
       word-break:break-word;
       min-height:100vh;
-      font-family:monospace;
-    ">${info}</pre>
+    ">
+${text}
+    </body>
   `;
 }
 
-/* ============================
-   External Open (NO REDIRECT IN DEBUG)
-============================ */
-function openSameUrlExternally() {
-  const currentUrl = window.location.href;
+function collectDebugInfo(extra = "") {
+  return `
+DEBUG MODE: ENABLED
 
-  if (DEBUG) return;
+Domain:
+${location.origin}
+
+Full URL:
+${location.href}
+
+Path:
+${location.pathname}
+
+Query:
+${location.search}
+
+User Agent:
+${navigator.userAgent}
+
+TelegramWebView:
+${isTelegramWebView()}
+
+Android:
+${isAndroid()}
+
+iOS:
+${isIOS()}
+
+${extra}
+`;
+}
+
+/* =====================================================
+   HARD STOP ALL REDIRECTS IN DEBUG
+===================================================== */
+if (DEBUG) {
+  const encodedPath = location.pathname.replace("/", "");
+  let extra = "";
+
+  if (params.get("r")) {
+    extra += `Mode: Query (?r=)\nEncoded:\n${params.get("r")}\n`;
+    try { extra += `Decoded:\n${atob(params.get("r"))}\n`; } catch {}
+  } else if (encodedPath.length > 10) {
+    extra += `Mode: Path\nEncoded:\n${encodedPath}\n`;
+    try { extra += `Decoded:\n${atob(encodedPath)}\n`; } catch {}
+  } else {
+    extra += `Mode: Fallback\n`;
+  }
+
+  showDebug(collectDebugInfo(extra));
+  throw new Error("DEBUG MODE STOP");
+}
+
+/* =====================================================
+   EXTERNAL OPEN (TELEGRAM ONLY)
+===================================================== */
+
+function openSameUrlExternally() {
+  const url = location.href;
 
   if (isAndroid()) {
-    window.location.href =
+    location.href =
       "intent://" +
-      currentUrl.replace(/^https?:\/\//, "") +
+      url.replace(/^https?:\/\//, "") +
       "#Intent;scheme=https;package=com.android.chrome;end";
     return;
   }
 
   if (isIOS()) {
-    window.location.href = currentUrl;
+    location.href = url;
     return;
   }
 
-  window.location.href = currentUrl;
+  location.href = url;
 }
 
-/* ============================
-   ORIGINAL CODE (EXTENDED)
-============================ */
+/* =====================================================
+   ORIGINAL LOGIC (EXTENDED, NOT REMOVED)
+===================================================== */
 
-let debugLog = "";
-debugLog += `DEBUG MODE: ON\n\n`;
-debugLog += `UserAgent:\n${navigator.userAgent}\n\n`;
-debugLog += `TelegramWebView: ${isTelegramWebView()}\n`;
-debugLog += `Android: ${isAndroid()}\n`;
-debugLog += `iOS: ${isIOS()}\n\n`;
-debugLog += `Current URL:\n${window.location.href}\n\n`;
+if (params.get("r") && params.get("r").toLowerCase().endsWith(" reveal")) {
+  const url = params.get("r").slice(0, -7);
 
-/* ---------- ?r= MODE ---------- */
-if (params.get("r")) {
+  document.head.innerHTML += '<link rel="stylesheet" href="./style.css">';
+  document.body.innerHTML = `
+    <div id="electric-surge"></div>
+    <div class="reveal center">
+      <div>
+        <div class="top">This URL redirects to:</div>
+        <div class="destination">${atob(url)}</div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(
+    Object.assign(document.createElement("script"), { src: "./script.js" })
+  );
+
+} else if (params.get("r")) {
   const encoded = params.get("r");
-  debugLog += `Mode: Query (?r=)\n`;
-  debugLog += `Encoded Value:\n${encoded}\n\n`;
 
   if (isTelegramWebView()) {
-    debugLog += `ACTION: Telegram detected\n`;
-    debugLog += `RESULT: Reopen SAME encoded URL externally\n`;
-    if (DEBUG) return showDebug(debugLog);
     openSameUrlExternally();
   } else {
-    debugLog += `ACTION: Normal browser\n`;
-    try {
-      debugLog += `Decoded URL:\n${atob(encoded)}\n`;
-      debugLog += `RESULT: Redirect to decoded URL\n`;
-    } catch {
-      debugLog += `ERROR: Invalid Base64\n`;
-    }
-    if (DEBUG) return showDebug(debugLog);
-    window.location.replace(atob(encoded));
+    location.replace(atob(encoded));
   }
-}
 
-/* ---------- PATH MODE ---------- */
-const encodedPath = window.location.pathname.replace("/", "");
-if (encodedPath.length > 10) {
-  debugLog += `Mode: Path-based\n`;
-  debugLog += `Encoded Path:\n${encodedPath}\n\n`;
+} else {
+  /* -------- PATH BASED -------- */
+  const encodedPath = location.pathname.replace("/", "");
 
-  if (isTelegramWebView()) {
-    debugLog += `ACTION: Telegram detected\n`;
-    debugLog += `RESULT: Reopen SAME encoded URL externally\n`;
-    if (DEBUG) return showDebug(debugLog);
-    openSameUrlExternally();
-  } else {
-    try {
-      debugLog += `Decoded URL:\n${atob(encodedPath)}\n`;
-      debugLog += `RESULT: Redirect to decoded URL\n`;
-      if (DEBUG) return showDebug(debugLog);
-      window.location.replace(atob(encodedPath));
-    } catch {
-      debugLog += `ERROR: Invalid Base64\n`;
-      if (DEBUG) return showDebug(debugLog);
-    }
-  }
-}
-
-/* ---------- FALLBACK ---------- */
-debugLog += `Mode: Fallback\n`;
-debugLog += `RESULT: Redirect to create page\n`;
-
-if (DEBUG) return showDebug(debugLog);
-window.location.replace("https://urlmsk.onrender.com/create");
-  /* ============================
-     PATH-BASED ENCODED URL SUPPORT
-     Example:
-     /aHR0cHM6Ly9zb2Z0dXJsLmluL3RzYkx4Ng==
-  ============================ */
-
-  const encodedPath = window.location.pathname.replace("/", "");
-
-  if (encodedPath && encodedPath.length > 10) {
+  if (encodedPath.length > 10) {
     if (isTelegramWebView()) {
-      console.log("Found Telegram Webview");
       openSameUrlExternally();
     } else {
       try {
-        window.location.replace(window.atob(encodedPath));
-      } catch (e) {
-        window.location.replace("https://urlmsk.onrender.com/create");
+        location.replace(atob(encodedPath));
+      } catch {
+        location.replace("https://urlmsk.onrender.com/create");
       }
     }
   } else {
-    window.location.replace("https://urlmsk.onrender.com/create");
+    location.replace("https://urlmsk.onrender.com/create");
   }
 }
