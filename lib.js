@@ -8,9 +8,9 @@ function decode(text) {
 
 function mask(text, type) {
   if (type == "text") {
-    return `https://axorax.github.io/urlmskr/?t=${encode(text)}`;
+    return `https://urlmsk.onrender.com/?t=${encode(text)}`;
   } else {
-    return `https://axorax.github.io/urlmskr/${encode(text)}`;
+    return `https://urlmsk.onrender.com/${encode(text)}`;
   }
 }
 
