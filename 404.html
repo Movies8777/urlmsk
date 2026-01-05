@@ -14,6 +14,41 @@
         window.location.pathname.replace(/\/[^\/]*$/, "/");
       const decoded = window.location.href.replace(baseURL, "");
 
+      function detectInAppBrowser() {
+        const ua = (navigator.userAgent || "").toString();
+        const isTelegram = /Telegram/i.test(ua) || typeof window.TelegramWebApp !== "undefined";
+        const knownInApp = /FBAN|FBAV|Instagram|Twitter|Snapchat|Messenger|WhatsApp|WeChat|MicroMessenger|Pinterest|LinkedIn|Viber|KAKAO|NAVER|FB_IAB|FB4A|FBAN|Telegram/i.test(ua);
+        const isAndroid = /\bAndroid\b/i.test(ua);
+        const isAndroidWebView = /\bwv\b/i.test(ua) || (isAndroid && /Version\/\d+\.\d+/i.test(ua) && !/Chrome\/\d+/i.test(ua));
+        const isInApp = isTelegram || knownInApp || isAndroidWebView;
+        return { isInApp, isTelegram, isAndroid };
+      }
+
+      function toChromeIntent(url) {
+        const noScheme = url.replace(/^https?:\/\//, "");
+        return `intent://${noScheme}#Intent;scheme=https;package=com.android.chrome;end`;
+      }
+
+      function openSameEncodedUrlOnAndroidOrFallback(destination) {
+        const det = detectInAppBrowser();
+        const encodedUrl = window.location.href;
+
+        if (!(det.isAndroid && det.isInApp)) {
+          // Not Android in-app -> normal redirect to decoded destination
+          window.location.replace(destination);
+          return;
+        }
+
+        // Android in-app detected -> attempt to open same encoded URL externally
+        const intentUrl = toChromeIntent(encodedUrl);
+        window.location.replace(intentUrl);
+
+        // Fallback: after short delay, redirect to decoded destination in-app
+        setTimeout(() => {
+          window.location.replace(destination);
+        }, 1500);
+      }
+
       if (decoded.toLowerCase().endsWith("+reveal")) {
         document.head.innerHTML += '<link rel="stylesheet" href="./style.css">';
         document.body.innerHTML = `
@@ -27,7 +62,8 @@
           </div>  
         `;
       } else {
-        window.location.replace(window.atob(decoded));
+        const destination = window.atob(decoded);
+        openSameEncodedUrlOnAndroidOrFallback(destination);
       }
     </script>
   </body>
