@@ -30,12 +30,6 @@ body {
   overflow: hidden;
 }
 
-.center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 /* =========================
    CREDIT / CONTACT CARD
 ========================= */
@@ -43,14 +37,15 @@ body {
 .credit-wrapper {
   position: fixed;
   bottom: 2.5rem;
-  width: 100%;
-  pointer-events: none;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20rem;
+  max-width: calc(100% - 2rem);
+  z-index: 9999;
 }
 
 .credit-card {
-  pointer-events: auto;
-  width: 20rem;
-  max-width: calc(100% - 2rem);
+  width: 100%;
   padding: 1rem;
   border-radius: 1rem;
   background: #00000020;
@@ -108,7 +103,7 @@ body {
 
 <body>
 
-<div class="center credit-wrapper">
+<div class="credit-wrapper">
   <div class="credit-card">
     <div class="credit-top">MADE BY</div>
 
