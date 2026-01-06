@@ -145,10 +145,10 @@ if (params.get("r")) {
       try {
         location.replace(atob(encodedPath));
       } catch {
-        location.replace("https://urlmsk.onrender.com/");
+        location.replace("https://urlmsk.onrender.com/contact");
       }
     }
   } else {
-    location.replace("https://urlmsk.onrender.com/");
+    location.replace("https://urlmsk.onrender.com/contact");
   }
 }
