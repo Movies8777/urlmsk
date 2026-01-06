@@ -56,7 +56,7 @@ function encode(value) {
   } else {
     let encodedValue = window.btoa(value);
     if (currentMode == "redirect") {
-      output.innerText = `https://urlmsk.onrender.com/${encodedValue}`;
+      output.innerText = `https://urlmsk.onrender.com/?r=${encodedValue}`;
     } else if (currentMode == "text") {
       output.innerText = `https://urlmsk.onrender.com/?t=${encodedValue}`;
     }
