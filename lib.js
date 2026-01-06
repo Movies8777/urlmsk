@@ -10,7 +10,7 @@ function mask(text, type) {
   if (type == "text") {
     return `https://urlmsk.onrender.com/?t=${encode(text)}`;
   } else {
-    return `https://urlmsk.onrender.com/${encode(text)}`;
+    return `https://urlmsk.onrender.com/?r=${encode(text)}`;
   }
 }
 
