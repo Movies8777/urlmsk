@@ -1,29 +1,35 @@
-/* =====================================================
-   INIT
-===================================================== */
+// index.js
 
-const params = new URLSearchParams(location.search);
-const DEBUG = params.get("debug") === "1";
+function getQueryParam(name) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(name);
+}
 
-/* =====================================================
-   HELPERS
-===================================================== */
+function getPathPayload() {
+  const path = window.location.pathname;
+  if (path.length > 1) {
+    // Remove leading slash and handle +reveal suffix
+    let payload = path.substring(1);
+    let reveal = false;
+    if (payload.endsWith("+reveal")) {
+      payload = payload.replace("+reveal", "");
+      reveal = true;
+    }
+    return { payload, reveal };
+  }
+  return { payload: null, reveal: false };
+}
 
-function isTelegramWebView() {
-  return typeof window.TelegramWebview !== "undefined";
+function isTelegram() {
+  return /Telegram/i.test(navigator.userAgent);
 }
 
 function isAndroid() {
   return /Android/i.test(navigator.userAgent);
 }
 
-function isIOS() {
-  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
-
 function openSameUrlExternally() {
   const url = location.href;
-
   if (isAndroid()) {
     location.href =
       "intent://" +
@@ -31,124 +37,127 @@ function openSameUrlExternally() {
       "#Intent;scheme=https;package=com.android.chrome;end";
     return;
   }
-
-  if (isIOS()) {
-    location.href = url;
-    return;
-  }
-
   location.href = url;
 }
 
-/* =====================================================
-   DEBUG MODE (HARD STOP)
-===================================================== */
-
-function showDebug(text) {
-  document.documentElement.innerHTML = `
-  <body style="
-    margin:0;
-    background:#020617;
-    color:#22d3ee;
-    font-family:monospace;
-    padding:16px;
-    white-space:pre-wrap;
-    word-break:break-word;
-    min-height:100vh;
-  ">
-${text}
-  </body>`;
+function showUI(content) {
+  document.body.innerHTML = `
+  <div class="reveal center">
+    ${content}
+  </div>`;
 }
 
-if (DEBUG) {
-  const encodedPath = location.pathname.replace("/", "");
-  let mode = "Fallback";
-  let encoded = "";
-  let decoded = "";
-
-  if (params.get("r")) {
-    mode = "Query (?r=)";
-    encoded = params.get("r");
-  } else if (encodedPath.length > 10) {
-    mode = "Path";
-    encoded = encodedPath;
+function safeSetHref(elementId, url) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  // Basic XSS protection for href
+  if (url.trim().toLowerCase().startsWith("javascript:")) {
+    el.href = "#";
+    el.textContent = "Invalid/Unsafe Link";
+  } else {
+    el.href = url;
   }
+}
 
-  if (encoded) {
-    try {
-      decoded = atob(encoded);
-    } catch {
-      decoded = "Invalid Base64";
-    }
-  }
-
-  showDebug(`
-DEBUG MODE: ENABLED
-
-Domain:
-${location.origin}
-
-Full URL:
-${location.href}
-
-Path:
-${location.pathname}
-
-Query:
-${location.search}
-
-User Agent:
-${navigator.userAgent}
-
-TelegramWebView:
-${isTelegramWebView()}
-
-Android:
-${isAndroid()}
-
-iOS:
-${isIOS()}
-
-Mode: ${mode}
-Encoded:
-${encoded || "none"}
-
-Decoded:
-${decoded || "none"}
+function showReveal(decoded) {
+  showUI(`
+    <div>
+      <div class="top">DESTINATION REVEALED</div>
+      <div class="destination" id="destination-text"></div>
+      <div style="padding: 1rem; background: #00000040;">
+        <a id="destination-link" style="
+          display: block;
+          text-align: center;
+          padding: 0.8rem;
+          background: #537fe7;
+          color: #fff;
+          text-decoration: none;
+          border-radius: 5px;
+          font-weight: 500;
+        ">Go to Destination</a>
+      </div>
+    </div>
   `);
-
-  throw new Error("DEBUG MODE STOP");
+  document.getElementById("destination-text").textContent = decoded;
+  safeSetHref("destination-link", decoded);
 }
 
-/* =====================================================
-   MAIN LOGIC
-===================================================== */
+function showText(decoded) {
+  showUI(`
+    <div>
+      <div class="top">MESSAGE</div>
+      <div class="destination" id="message-text"></div>
+    </div>
+  `);
+  document.getElementById("message-text").textContent = decoded;
+}
 
-/* ---- QUERY MODE ---- */
-if (params.get("r")) {
-  const encoded = params.get("r");
+function showRedirecting(destination) {
+  showUI(`
+    <div style="text-align: center; border: none; background: transparent;">
+      <h1 style="color: #fff; font-size: 2rem; margin-bottom: 1rem;">Please Wait..</h1>
+      <p style="color: #537fe7; font-size: 1.2rem; font-weight: bold;">Opening Link</p>
+      <a id="redirect-link" style="color: #a5beff; text-decoration: underline; margin-top: 1rem; display: inline-block;">click here</a>
+    </div>
+  `);
+  safeSetHref("redirect-link", destination);
+}
 
-  if (isTelegramWebView()) {
+function decodeBase64(str) {
+  try {
+    // URLSearchParams might convert + to space, but since we are getting it
+    // from window.location.search or pathname, we should handle it.
+    // Replace space back to + if it's coming from URLSearchParams
+    return atob(str.replace(/ /g, "+"));
+  } catch (e) {
+    console.error("Failed to decode base64", e);
+    return null;
+  }
+}
+
+window.onload = function () {
+  // If in Telegram Webview, try to open in external browser
+  if (isTelegram()) {
     openSameUrlExternally();
-  } else {
-    location.replace(atob(encoded));
   }
 
-/* ---- PATH MODE ---- */
-} else {
-  const encodedPath = location.pathname.replace("/", "");
+  // Try to get payload from query params first (?r= or ?t=)
+  let r = getQueryParam("r");
+  let t = getQueryParam("t");
+  let reveal = false;
 
-  if (encodedPath.length > 10) {
-    if (isTelegramWebView()) {
-      openSameUrlExternally();
-    } else {
-      try {
-        location.replace(atob(encodedPath));
-      } catch {
-        location.replace("https://urlmsk.onrender.com/contact");
+  // If not in query params, try path
+  if (!r && !t) {
+    const pathData = getPathPayload();
+    if (pathData.payload) {
+      r = pathData.payload;
+      reveal = pathData.reveal;
+    }
+  }
+
+  if (r) {
+    const decoded = decodeBase64(r);
+    if (decoded) {
+      if (reveal) {
+        showReveal(decoded);
+      } else {
+        showRedirecting(decoded);
+        setTimeout(() => {
+          window.location.replace(decoded);
+        }, 1500);
       }
+    } else {
+      console.log("Invalid masked URL");
+    }
+  } else if (t) {
+    const decoded = decodeBase64(t);
+    if (decoded) {
+      showText(decoded);
     }
   } else {
-    location.replace("https://urlmsk.onrender.com/contact");
+    // No payload, redirect to create page if at root
+    if (window.location.pathname === "/" || window.location.pathname === "/index.html") {
+        window.location.href = "create.html";
+    }
   }
-}
+};

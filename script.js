@@ -55,10 +55,11 @@ function encode(value) {
     output.innerHTML = `<span style="user-select: none">Input cannot be empty.</span>`;
   } else {
     let encodedValue = window.btoa(value);
+    const baseUrl = window.location.origin + window.location.pathname.replace("create.html", "").replace("create", "");
     if (currentMode == "redirect") {
-      output.innerText = `https://urlmsk.onrender.com/?r=${encodedValue}`;
+      output.innerText = `${baseUrl}?r=${encodeURIComponent(encodedValue)}`;
     } else if (currentMode == "text") {
-      output.innerText = `https://urlmsk.onrender.com/?t=${encodedValue}`;
+      output.innerText = `${baseUrl}?t=${encodeURIComponent(encodedValue)}`;
     }
   }
 }

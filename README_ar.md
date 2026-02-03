@@ -11,7 +11,7 @@
 
 # 🤔 لماذا؟
 
-يسمح لك استخدام أداة مثل urlmskr بإرسال رابط دون الكشف عن الموقع الوجهة. ومع ذلك، قد يؤدي ذلك إلى تلقي روابط لمواقع غير مرغوب فيها. وللكشف عن الوجهة، ما عليك سوى إضافة `+reveal` في نهاية عنوان URL. على سبيل المثال: `https://axorax.github.io/urlmskr/hello69+reveal`.
+يسمح لك استخدام أداة مثل urlmskr بإرسال رابط دون الكشف عن الموقع الوجهة. ومع ذلك، قد يؤدي ذلك إلى تلقي روابط لمواقع غير مرغوب فيها. وللكشف عن الوجهة، ما عليك سوى إضافة `+reveal` في نهاية عنوان URL. على سبيل المثال: `https://urlmsk.onrender.com/hello69+reveal`.
 
 # 💻 التكامل مع مشروعك
 
@@ -24,7 +24,7 @@
     <title>مثال على ذلك</title>
   </head>
   <body>
-    <script src="https://axorax.github.io/urlmskr/lib.js"></script>
+    <script src="https://urlmsk.onrender.com/lib.js"></script>
     <script>
       document.write(urlmskr.mask("https://axorax.github.io")); // عنوان URL للقناع
       document.write("<br>"); // إضافة سطر فارغ

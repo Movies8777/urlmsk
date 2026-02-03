@@ -11,7 +11,7 @@ urlmskr 可让你屏蔽链接并发送编码信息，方法是将链接更改为
 
 # 🤔 为什么？
 
-使用 urlmskr 这样的工具可以发送链接而不显示目标网站。不过，这可能会导致接收到不想要的网站链接。要显示目的地，只需在 URL 结尾添加 `+reveal`。例如：`https://axorax.github.io/urlmskr/hello69+reveal`。
+使用 urlmskr 这样的工具可以发送链接而不显示目标网站。不过，这可能会导致接收到不想要的网站链接。要显示目的地，只需在 URL 结尾添加 `+reveal`。例如：`https://urlmsk.onrender.com/hello69+reveal`。
 
 # 💻 与您的项目相结合
 
@@ -24,7 +24,7 @@ urlmskr 的根目录中包含各种编程语言的库，以相应语言的扩展
     <title>示例</title>
   </head>
   <body>
-    <script src="https://axorax.github.io/urlmskr/lib.js"></script>
+    <script src="https://urlmsk.onrender.com/lib.js"></script>
     <script>
       document.write(urlmskr.mask("https://axorax.github.io")); // 屏蔽 URL
       document.write("<br>"); // 添加空行

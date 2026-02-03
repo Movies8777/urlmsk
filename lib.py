@@ -1,25 +1,20 @@
 import base64
+import urllib.parse
 
-def encode(text):
-    encoded_bytes = base64.b64encode(text.encode('utf-8'))
-    return encoded_bytes.decode('utf-8')
+class urlmskr:
+    @staticmethod
+    def encode(text):
+        return base64.b64encode(text.encode()).decode()
 
-def decode(text):
-    decoded_bytes = base64.b64decode(text.encode('utf-8'))
-    return decoded_bytes.decode('utf-8')
+    @staticmethod
+    def decode(text):
+        return base64.b64decode(text.encode()).decode()
 
-def mask(text, type):
-    if type == 'text':
-        return f"https://axorax.github.io/urlmskr/?t={encode(text)}"
-    else:
-        return f"https://axorax.github.io/urlmskr/{encode(text)}"
-
-urlmskr = {
-    'encode': encode,
-    'decode': decode,
-    'mask': mask
-}
-
-# Usage examples:
-# urlmskr['mask']('urlmskr', 'text')
-# urlmskr['mask']('urlmskr', 'other')
+    @staticmethod
+    def mask(text, type):
+        baseUrl = "https://urlmsk.onrender.com/"
+        encodedPayload = urlmskr.encode(text)
+        if type == "text":
+            return f"{baseUrl}?t={urllib.parse.quote(encodedPayload)}"
+        else:
+            return f"{baseUrl}?r={urllib.parse.quote(encodedPayload)}"
