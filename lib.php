@@ -1,5 +1,4 @@
 <?php
-
 class urlmskr {
     public static function encode($text) {
         return base64_encode($text);
@@ -10,16 +9,13 @@ class urlmskr {
     }
 
     public static function mask($text, $type) {
-        if ($type == 'text') {
-            return "https://axorax.github.io/urlmskr/?t=" . self::encode($text);
+        $baseUrl = "https://urlmsk.onrender.com/";
+        $encodedPayload = self::encode($text);
+        if ($type == "text") {
+            return $baseUrl . "?t=" . urlencode($encodedPayload);
         } else {
-            return "https://axorax.github.io/urlmskr/" . self::encode($text);
+            return $baseUrl . "?r=" . urlencode($encodedPayload);
         }
     }
 }
-
-// Usage examples:
-// urlmskr::mask('urlmskr', 'text');
-// urlmskr::mask('urlmskr', 'other');
-
 ?>

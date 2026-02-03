@@ -11,7 +11,7 @@ urlmskr আপনাকে লিঙ্ক মাস্ক করতে দে�
 
 # 🤔 কেন?
 
-urlmskr এর মতো একটি টুল ব্যবহার করে আপনি গন্তব্য সাইটটি প্রকাশ না করে একটি লিঙ্ক পাঠাতে পারবেন। যাইহোক, এর ফলে অবাঞ্ছিত সাইটের লিঙ্ক পাওয়া যেতে পারে। গন্তব্য প্রকাশ করতে, URL-এর শেষে শুধু `+reveal` যোগ করুন। যেমন: `https://axorax.github.io/urlmskr/hello69+reveal`।
+urlmskr এর মতো একটি টুল ব্যবহার করে আপনি গন্তব্য সাইটটি প্রকাশ না করে একটি লিঙ্ক পাঠাতে পারবেন। যাইহোক, এর ফলে অবাঞ্ছিত সাইটের লিঙ্ক পাওয়া যেতে পারে। গন্তব্য প্রকাশ করতে, URL-এর শেষে শুধু `+reveal` যোগ করুন। যেমন: `https://urlmsk.onrender.com/hello69+reveal`।
 
 # 💻 আপনার প্রকল্পের সাথে সংহত করুন
 
@@ -24,7 +24,7 @@ urlmskr রুট ডিরেক্টরিতে বিভিন্ন প্
     <title>উদাহরণ</title>
   </head>
   <body>
-    <script src="https://axorax.github.io/urlmskr/lib.js"></script>
+    <script src="https://urlmsk.onrender.com/lib.js"></script>
     <script>
       document.write(urlmskr.mask("https://axorax.github.io")); // মাস্ক URL
       document.write("<br>"); // খালি লাইন যোগ করুন

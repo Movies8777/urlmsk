@@ -11,7 +11,7 @@ urlmskr permite enmascarar enlaces y enviar mensajes codificados cambiando un en
 
 # 🤔 ¿Por qué?
 
-Utilizar una herramienta como urlmskr permite enviar un enlace sin revelar el sitio de destino. Sin embargo, esto podría llevar a recibir enlaces a sitios no deseados. Para revelar el destino, basta con añadir `+reveal` al final de la URL. Por ejemplo: `https://axorax.github.io/urlmskr/hello69+reveal`.
+Utilizar una herramienta como urlmskr permite enviar un enlace sin revelar el sitio de destino. Sin embargo, esto podría llevar a recibir enlaces a sitios no deseados. Para revelar el destino, basta con añadir `+reveal` al final de la URL. Por ejemplo: `https://urlmsk.onrender.com/hello69+reveal`.
 
 # 💻 Integración en su proyecto
 
@@ -24,7 +24,7 @@ urlmskr incluye librerías para varios lenguajes de programación en el director
     <title>Ejemplo</title>
   </head>
   <body>
-    <script src="https://axorax.github.io/urlmskr/lib.js"></script>
+    <script src="https://urlmsk.onrender.com/lib.js"></script>
     <script>
       document.write(urlmskr.mask("https://axorax.github.io")); // Máscara URL
       document.write("<br>"); // Añadir línea vacía
